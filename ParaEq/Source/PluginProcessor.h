@@ -13,12 +13,12 @@
 //==============================================================================
 /**
 */
-class EQAudioProcessor  : public juce::AudioProcessor
+class ParaEqAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    EQAudioProcessor();
-    ~EQAudioProcessor() override;
+    ParaEqAudioProcessor();
+    ~ParaEqAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -53,7 +53,12 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Parameters", 
+        createParameterLayout()};
+
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EQAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParaEqAudioProcessor)
 };

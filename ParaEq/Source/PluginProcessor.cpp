@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-EQAudioProcessor::EQAudioProcessor()
+ParaEqAudioProcessor::ParaEqAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -24,17 +24,17 @@ EQAudioProcessor::EQAudioProcessor()
 {
 }
 
-EQAudioProcessor::~EQAudioProcessor()
+ParaEqAudioProcessor::~ParaEqAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String EQAudioProcessor::getName() const
+const juce::String ParaEqAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool EQAudioProcessor::acceptsMidi() const
+bool ParaEqAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -43,7 +43,7 @@ bool EQAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool EQAudioProcessor::producesMidi() const
+bool ParaEqAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -52,7 +52,7 @@ bool EQAudioProcessor::producesMidi() const
    #endif
 }
 
-bool EQAudioProcessor::isMidiEffect() const
+bool ParaEqAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -61,50 +61,50 @@ bool EQAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double EQAudioProcessor::getTailLengthSeconds() const
+double ParaEqAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int EQAudioProcessor::getNumPrograms()
+int ParaEqAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int EQAudioProcessor::getCurrentProgram()
+int ParaEqAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void EQAudioProcessor::setCurrentProgram (int index)
+void ParaEqAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String EQAudioProcessor::getProgramName (int index)
+const juce::String ParaEqAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void EQAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void ParaEqAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void EQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void ParaEqAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
 
-void EQAudioProcessor::releaseResources()
+void ParaEqAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool EQAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool ParaEqAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -129,7 +129,7 @@ bool EQAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 }
 #endif
 
-void EQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void ParaEqAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -159,33 +159,84 @@ void EQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 }
 
 //==============================================================================
-bool EQAudioProcessor::hasEditor() const
+bool ParaEqAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* EQAudioProcessor::createEditor()
+juce::AudioProcessorEditor* ParaEqAudioProcessor::createEditor()
 {
-    return new EQAudioProcessorEditor (*this);
+    //return new ParaEqAudioProcessorEditor (*this);
+	return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void EQAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void ParaEqAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void EQAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void ParaEqAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 }
 
+
+
+juce::AudioProcessorValueTreeState::ParameterLayout
+    ParaEqAudioProcessor::createParameterLayout()
+{
+	juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    
+
+	// Low cut frequency parameter
+    layout.add(std::make_unique < juce::AudioParameterFloat>("LowCut Freq", "LowCut Freq",
+        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 20.f));
+
+	// High cut frequency parameter
+    layout.add(std::make_unique < juce::AudioParameterFloat>("HighCut Freq", "HighCut Freq",
+        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 20000.f));
+
+	// Peak frequency parameter (parametric section)
+    layout.add(std::make_unique < juce::AudioParameterFloat>("Peak Freq", "Peak Freq",
+        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 800.f));
+
+	// Peak gain parameter (How much we boost/cut peak freq)
+    layout.add(std::make_unique < juce::AudioParameterFloat>("Peak Gain", "Peak Gain",
+        juce::NormalisableRange<float>(-24.f, 24.f, 0.1f, 1.f), 0.0f));
+
+	//Peak quality parameter (How wide/narrow the curve is)
+    layout.add(std::make_unique < juce::AudioParameterFloat>("Peak Quality", "Peak Quality",
+        juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f), 1.f));
+
+	//creating slopes for low/high cut filters
+    juce::StringArray stringArray;
+    for(int i =0 ; i < 4; ++i)
+    {
+        juce::String str;
+        str << (12 + i * 12);
+        str << " dB/Oct";
+        stringArray.add(str);
+	}
+
+    layout.add(std::make_unique <juce::AudioParameterChoice>("LowCut Slope", "LowCut Slope",
+		stringArray, 0));
+    layout.add(std::make_unique <juce::AudioParameterChoice>("HighCut Slope", "HighCut Slope",
+        stringArray, 0));
+
+	return layout;
+}
+
+
+
+
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new EQAudioProcessor();
+    return new ParaEqAudioProcessor();
 }
